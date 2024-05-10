@@ -47,6 +47,23 @@ async function run() {
 
          res.send(result);
       });
+
+      // GET Six foods from database with highest quantity
+      app.get("/featured-foods", async (req, res) => {
+         const result = await foodsCollection
+            .find()
+            // limit korte hobe koyta porjonto amra dekhabo
+            .limit(6)
+            // er por sort korte hobe kon field amra ascending
+            // or descending korbo. jehutu sort and limit akshathe
+            // use kortesi, tai unique field arekta pass korte hobe
+            // for future error avoid cases.
+            .sort({ foodQuantity: -1, _id: 1 })
+            .toArray();
+
+         res.send(result);
+      });
+
       console.log(
          "Pinged your deployment. You successfully connected to MongoDB!"
       );
