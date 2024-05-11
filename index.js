@@ -21,6 +21,25 @@ app.use(express.json());
 app.use(cookieParser());
 
 // creating middleware to verify JWT token:
+const verifyToken = (req, res, next) => {
+   const token = req.cookies.token;
+
+   if (!token) {
+      return res.status(401).send({ message: "Unauthorized Access" });
+   }
+
+   if (token) {
+      jwt.verify(token, process.env.JWT_API_SECRET, (error, decoded) => {
+         if (error) {
+            return res.status(401).send({ message: "Unauthorized Access" });
+         }
+
+         res.user = decoded;
+
+         next();
+      });
+   }
+};
 
 // mongoDB
 
