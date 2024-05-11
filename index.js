@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 
 const app = express();
@@ -16,6 +18,9 @@ const corsOptions = {
 // middlewares:
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
+
+// creating middleware to verify JWT token:
 
 // mongoDB
 
@@ -39,7 +44,26 @@ async function run() {
 
       const foodsCollection = client.db("sustainEats").collection("foods");
 
-      // APIs
+      /****** APIs *********/
+
+      /****** JWT Related APIs *********/
+
+      // create a json web token using email
+      app.post("/jwt", async (req, res) => {
+         const user = req.body;
+         console.log(user);
+         const token = jwt.sign(user, process.env.JWT_API_SECRET, {
+            expiresIn: "7d",
+         });
+
+         res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production" ? true : false,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+         }).send({ success: true });
+      });
+
+      /****** Food Related APIs *********/
 
       // get API to get all the foods
       app.get("/foods", async (req, res) => {
