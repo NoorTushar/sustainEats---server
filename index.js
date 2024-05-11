@@ -131,6 +131,24 @@ async function run() {
          res.send(result);
       });
 
+      // update the status of a food item
+      // PATCH: Update the bid status
+      app.patch("/food/:id", async (req, res) => {
+         const id = req.params.id;
+         const foodStatus = req.body;
+         console.log(foodStatus.foodStatus);
+
+         const query = { _id: new ObjectId(id) };
+         const updateDoc = {
+            $set: {
+               foodStatus: foodStatus.foodStatus,
+            },
+         };
+
+         const result = await foodsCollection.updateOne(query, updateDoc);
+         res.send(result);
+      });
+
       /****** Requested Food Related APIs *********/
       app.post("/request-food", async (req, res) => {
          const data = req.body;
