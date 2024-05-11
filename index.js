@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -84,17 +84,21 @@ async function run() {
 
       /****** Food Related APIs *********/
 
-      // get API to get all the foods
+      // get API to get all the foods with status available
       app.get("/foods", async (req, res) => {
-         const result = await foodsCollection.find().toArray();
+         const query = {
+            foodStatus: "Available",
+         };
+         const result = await foodsCollection.find(query).toArray();
 
          res.send(result);
       });
 
       // GET Six foods from database with highest quantity
       app.get("/featured-foods", async (req, res) => {
+         const query = { foodStatus: "Available" };
          const result = await foodsCollection
-            .find()
+            .find(query)
             // limit korte hobe koyta porjonto amra dekhabo
             .limit(6)
             // er por sort korte hobe kon field amra ascending
@@ -104,6 +108,14 @@ async function run() {
             .sort({ foodQuantity: -1, _id: 1 })
             .toArray();
 
+         res.send(result);
+      });
+
+      // GET a single food data using id from params
+      app.get("/food/:id", async (req, res) => {
+         const id = req.params.id;
+         const query = { _id: new ObjectId(id) };
+         const result = await foodsCollection.findOne(query);
          res.send(result);
       });
 
