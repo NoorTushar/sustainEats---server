@@ -62,6 +62,9 @@ async function run() {
       //   await client.db("admin").command({ ping: 1 });
 
       const foodsCollection = client.db("sustainEats").collection("foods");
+      const requestedFoodsCollection = client
+         .db("sustainEats")
+         .collection("requestedFoods");
 
       /****** APIs *********/
 
@@ -82,7 +85,7 @@ async function run() {
          }).send({ success: true });
       });
 
-      /****** Food Related APIs *********/
+      /****** Available Food Related APIs *********/
 
       // get API to get all the foods with status available
       app.get("/foods", async (req, res) => {
@@ -125,6 +128,13 @@ async function run() {
          console.log(food);
 
          const result = await foodsCollection.insertOne(food);
+         res.send(result);
+      });
+
+      /****** Requested Food Related APIs *********/
+      app.post("/request-food", async (req, res) => {
+         const data = req.body;
+         const result = await requestedFoodsCollection.insertOne(data);
          res.send(result);
       });
 
