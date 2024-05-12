@@ -97,6 +97,14 @@ async function run() {
          res.send(result);
       });
 
+      // GET API to get foods filtered by who added them
+      app.get("/foods/:email", async (req, res) => {
+         const searchEmail = req.params.email;
+         const filter = { "donor.donorEmail": searchEmail };
+         const result = await foodsCollection.find(filter).toArray();
+         res.send(result);
+      });
+
       // GET Six foods from database with highest quantity
       app.get("/featured-foods", async (req, res) => {
          const query = { foodStatus: "Available" };
