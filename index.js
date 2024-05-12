@@ -22,8 +22,8 @@ app.use(cookieParser());
 
 // creating middleware to verify JWT token:
 const verifyToken = (req, res, next) => {
-   const token = req.cookies.token;
-
+   const token = req.cookies?.token;
+   console.log("token:::", token);
    if (!token) {
       return res.status(401).send({ message: "Unauthorized Access" });
    }
@@ -34,7 +34,7 @@ const verifyToken = (req, res, next) => {
             return res.status(401).send({ message: "Unauthorized Access" });
          }
 
-         res.user = decoded;
+         req.user = decoded;
 
          next();
       });
@@ -85,6 +85,15 @@ async function run() {
          }).send({ success: true });
       });
 
+      // removing token
+      app.post("/logout", async (req, res) => {
+         const user = req.body;
+         console.log(`logging out`, user);
+
+         // clearing cookie
+         res.clearCookie("token", { maxAge: 0 }).send({ success: true });
+      });
+
       /****** Available Food Related APIs *********/
 
       // get API to get all the foods with status available
@@ -98,9 +107,17 @@ async function run() {
       });
 
       // GET API to get foods filtered by who added them
-      app.get("/foods/:email", async (req, res) => {
+      app.get("/foods/:email", verifyToken, async (req, res) => {
          const searchEmail = req.params.email;
+         console.log("search email: ", searchEmail);
+         console.log("token user: ", req?.user);
+
+         if (searchEmail !== req?.user?.email) {
+            return res.status(403).send({ message: "Forbidden Access" });
+         }
+
          const filter = { "donor.donorEmail": searchEmail };
+
          const result = await foodsCollection.find(filter).toArray();
          res.send(result);
       });
