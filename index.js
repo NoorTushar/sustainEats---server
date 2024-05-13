@@ -140,15 +140,35 @@ async function run() {
       });
 
       // GET a single food data using id from params
-      app.get("/food/:id", async (req, res) => {
+      app.get("/food/:id", verifyToken, async (req, res) => {
          const id = req.params.id;
          const query = { _id: new ObjectId(id) };
          const result = await foodsCollection.findOne(query);
          res.send(result);
       });
 
+      // Update a single food data using id
+      app.put("/food/:id", verifyToken, async (req, res) => {
+         const id = req.params.id;
+         const updateData = req.body;
+         const query = { _id: new ObjectId(id) };
+         const options = { upsert: true };
+         const updateDoc = {
+            $set: {
+               ...updateData,
+            },
+         };
+         console.log(updateDoc);
+         const result = await foodsCollection.updateOne(
+            query,
+            updateDoc,
+            options
+         );
+         res.send(result);
+      });
+
       // Add a food to database
-      app.post("/foods", async (req, res) => {
+      app.post("/foods", verifyToken, async (req, res) => {
          const food = req.body;
          console.log(food);
 
@@ -171,6 +191,15 @@ async function run() {
          };
 
          const result = await foodsCollection.updateOne(query, updateDoc);
+         res.send(result);
+      });
+
+      // delete a food item using id
+      app.delete("/food/:id", async (req, res) => {
+         const deleteId = req.params.id;
+         const query = { _id: new ObjectId(deleteId) };
+         const result = await foodsCollection.deleteOne(query);
+
          res.send(result);
       });
 
