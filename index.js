@@ -140,7 +140,7 @@ async function run() {
       });
 
       // GET a single food data using id from params
-      app.get("/food/:id", verifyToken, async (req, res) => {
+      app.get("/food/:id", async (req, res) => {
          const id = req.params.id;
          const query = { _id: new ObjectId(id) };
          const result = await foodsCollection.findOne(query);
@@ -204,6 +204,25 @@ async function run() {
       });
 
       /****** Requested Food Related APIs *********/
+
+      // GET API: Get all foods requested by who requested them, email.
+      // GET API to get foods filtered by who added them
+      app.get("/requested-foods/:email", verifyToken, async (req, res) => {
+         const searchEmail = req.params.email;
+         console.log("search email: sssss", searchEmail);
+         console.log("token user: sssss", req?.user);
+
+         if (searchEmail !== req?.user?.email) {
+            return res.status(403).send({ message: "Forbidden Access" });
+         }
+
+         const filter = { req_email: searchEmail };
+
+         const result = await requestedFoodsCollection.find(filter).toArray();
+         res.send(result);
+      });
+
+      // POST API: Make a food request and save to Database.
       app.post("/request-food", async (req, res) => {
          const data = req.body;
          const result = await requestedFoodsCollection.insertOne(data);
