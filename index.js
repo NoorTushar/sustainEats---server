@@ -10,9 +10,19 @@ const port = process.env.PORT || 3000;
 require("dotenv").config();
 
 const corsOptions = {
-   origin: ["http://localhost:5173"],
+   origin: [
+      "http://localhost:5173",
+      "https://sustaineats-4027a.web.app",
+      "https://sustaineats-4027a.firebaseapp.com",
+   ],
    credentials: true,
    optionSuccessStatus: 200,
+};
+
+const cookieOptions = {
+   httpOnly: true,
+   secure: process.env.NODE_ENV === "production" ? true : false,
+   sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
 };
 
 // middlewares:
@@ -78,11 +88,7 @@ async function run() {
             expiresIn: "7d",
          });
 
-         res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production" ? true : false,
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-         }).send({ success: true });
+         res.cookie("token", token, cookieOptions).send({ success: true });
       });
 
       // removing token
@@ -91,7 +97,9 @@ async function run() {
          console.log(`logging out`, user);
 
          // clearing cookie
-         res.clearCookie("token", { maxAge: 0 }).send({ success: true });
+         res.clearCookie("token", { ...cookieOptions, maxAge: 0 }).send({
+            success: true,
+         });
       });
 
       /****** Available Food Related APIs *********/
