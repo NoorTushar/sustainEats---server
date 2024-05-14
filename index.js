@@ -106,12 +106,48 @@ async function run() {
 
       // get API to get all the foods with status available
       app.get("/foods", async (req, res) => {
-         const query = {
+         const search = req.query.search;
+         const sort = req.query.sort;
+         console.log(sort);
+
+         // Define the base query to retrieve available foods
+         const baseQuery = {
             foodStatus: "Available",
          };
-         const result = await foodsCollection.find(query).toArray();
 
-         res.send(result);
+         // If there's a search query, add it to the base query to filter by foodName
+         const query = search
+            ? {
+                 ...baseQuery,
+                 foodName: { $regex: search, $options: "i" }, // Filter by foodName using regex
+              }
+            : baseQuery;
+
+         // If there's a sort selected
+         let options = {};
+
+         // this is one way to pass the sort through options
+         // other way was to use .find.sort
+
+         if (sort) {
+            options = {
+               sort: {
+                  expiredDate: sort === "asc" ? 1 : -1,
+               },
+            };
+         }
+
+         try {
+            // Fetch foods based on the constructed query
+            const result = await foodsCollection.find(query, options).toArray();
+
+            // Send the result as a response
+            res.send(result);
+         } catch (error) {
+            // Handle errors if any
+            console.error("Error fetching foods:", error);
+            res.status(500).send("Internal Server Error");
+         }
       });
 
       // GET API to get foods filtered by who added them
