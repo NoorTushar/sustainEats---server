@@ -5,9 +5,9 @@ const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
-const port = process.env.PORT || 3000;
-
 require("dotenv").config();
+const stripe = require("stripe")(process.env.PAYMENT_SECRET);
+const port = process.env.PORT || 3000;
 
 const corsOptions = {
    origin: [
@@ -72,6 +72,7 @@ async function run() {
       //   await client.db("admin").command({ ping: 1 });
 
       const foodsCollection = client.db("sustainEats").collection("foods");
+      const paymentCollection = client.db("sustainEats").collection("payments");
       const requestedFoodsCollection = client
          .db("sustainEats")
          .collection("requestedFoods");
@@ -271,6 +272,49 @@ async function run() {
          const data = req.body;
          const result = await requestedFoodsCollection.insertOne(data);
          res.send(result);
+      });
+
+      /****** Payment APIs *******/
+
+      // payment (2)
+      app.post("/create-payment-intent", async (req, res) => {
+         try {
+            const { price } = req.body;
+            if (!price) {
+               return res.status(400).send({ error: "Price is required" });
+            }
+            const amount = parseInt(price * 100);
+            console.log(amount, "amount inside the intent", typeof amount);
+
+            const paymentIntent = await stripe.paymentIntents.create({
+               amount: amount,
+               currency: "usd",
+               payment_method_types: ["card"],
+            });
+
+            res.send({
+               clientSecret: paymentIntent.client_secret,
+            });
+         } catch (error) {
+            console.error("Error creating payment intent:", error);
+            res.status(500).send({ error: "Failed to create payment intent" });
+         }
+      });
+
+      // payment (4)
+      app.post("/payments", async (req, res) => {
+         const payment = req.body;
+         console.log("payment info/ data: ", payment);
+
+         try {
+            const paymentResult = await paymentCollection.insertOne(payment);
+
+            // Send both results as a response
+            res.status(200).send({ paymentResult });
+         } catch (error) {
+            console.error("Error processing payment:", error);
+            res.status(500).send({ message: "Internal Server Error" });
+         }
       });
 
       console.log(
