@@ -45,6 +45,7 @@ const verifyToken = (req, res, next) => {
          }
 
          req.user = decoded;
+         req.decoded = decoded;
 
          next();
       });
@@ -277,12 +278,12 @@ async function run() {
       /****** Payment APIs *******/
 
       // get all payments from db
-      app.get("/payments/:email", async (req, res) => {
+      app.get("/payments/:email", verifyToken, async (req, res) => {
          const query = { email: req.params.email };
 
-         // if (req.params.email !== req.decoded.email) {
-         //    return res.status(403).send({ message: "forbidden Access" });
-         // }
+         if (req.params.email !== req.decoded.email) {
+            return res.status(403).send({ message: "forbidden Access" });
+         }
          const result = await paymentCollection.find(query).toArray();
          res.send(result);
       });
