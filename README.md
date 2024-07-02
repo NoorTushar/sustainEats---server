@@ -14,7 +14,7 @@ npm i
 
 ![alt text](image.png)
 
-3. create a `.env.` file in the root directory, and inside that give these values according to your project
+3. create a `.env` file in the root directory, and inside that give these values according to your project
 
 ```
 DB_USER= your mongo db user name
